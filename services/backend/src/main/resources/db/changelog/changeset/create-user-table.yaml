@@ -14,7 +14,7 @@ databaseChangeLog:
                     primaryKey: true
                     nullable: false
               - column:
-                  name: username
+                  name: email
                   type: varchar(255)
                   constraints:
                     unique: true
@@ -22,12 +22,6 @@ databaseChangeLog:
               - column:
                   name: password
                   type: varchar(255)
-                  constraints:
-                    nullable: false
-              - column:
-                  name: role
-                  type: varchar(50)
-                  defaultValue: USER
                   constraints:
                     nullable: false
   - changeSet:
