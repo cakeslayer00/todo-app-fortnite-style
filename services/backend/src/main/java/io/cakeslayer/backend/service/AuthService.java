@@ -1,0 +1,12 @@
+package io.cakeslayer.backend.service;
+
+import io.cakeslayer.backend.dto.request.LoginRequest;
+import io.cakeslayer.backend.dto.request.RegisterRequest;
+import io.cakeslayer.backend.dto.response.AuthResponse;
+
+public interface AuthService {
+
+    AuthResponse register(RegisterRequest request);
+
+    AuthResponse authenticate(LoginRequest request);
+}
