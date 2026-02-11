@@ -1,6 +1,8 @@
 package io.cakeslayer.backend.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record AuthResponse(
-    String token,
-    String email
+        @JsonProperty("refresh_token") String refreshToken,
+        @JsonProperty("access_token") String accessToken
 ) {}
