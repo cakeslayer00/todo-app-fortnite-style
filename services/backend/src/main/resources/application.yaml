@@ -1,3 +1,8 @@
+jwt:
+  private-key: classpath:private_key.pem #load from .env later
+  public-key: classpath:public_key.pem
+  expiration: 86400000
+
 spring:
   application:
     name: backend

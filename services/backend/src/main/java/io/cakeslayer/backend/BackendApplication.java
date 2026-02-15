@@ -1,9 +1,12 @@
 package io.cakeslayer.backend;
 
+import io.cakeslayer.backend.config.properties.JwtProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 
 @SpringBootApplication
+@EnableConfigurationProperties(JwtProperties.class)
 public class BackendApplication {
 
     static void main(String[] args) {

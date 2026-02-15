@@ -1,7 +1,10 @@
 package io.cakeslayer.backend.advice;
 
 import io.cakeslayer.backend.dto.response.ErrorResponse;
+import io.cakeslayer.backend.exception.InvalidUserCredentialsException;
+import io.cakeslayer.backend.exception.UserAlreadyExistsException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -27,6 +30,18 @@ public class GlobalExceptionHandler {
             errors.put(fieldName, errorMessage);
         });
         return new ErrorResponse(HttpStatus.BAD_REQUEST.value(), VALIDATION_FAIL_MESSAGE, errors);
+    }
+
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ErrorResponse handleUserAlreadyExistsException(UserAlreadyExistsException ex) {
+        return new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ErrorResponse handleInvalidUserCredentialsException(BadCredentialsException ex) {
+        return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)

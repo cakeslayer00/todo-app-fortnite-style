@@ -1,8 +1,107 @@
 package io.cakeslayer.backend.service;
 
+import io.cakeslayer.backend.config.properties.JwtProperties;
+import io.cakeslayer.backend.exception.JwtKeyLoadException;
+import io.cakeslayer.backend.util.JwtKeyLoaderUtils;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.SignatureAlgorithm;
+import jakarta.annotation.PostConstruct;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.util.Date;
+import java.util.function.Function;
+
 @Service
+@Slf4j
+@RequiredArgsConstructor
 public class JwtService {
-//TODO: implement service, use refresh tokens, use RS256, store tokens in httpOnly, CSRF
+
+    private static final SignatureAlgorithm ALGORITHM = Jwts.SIG.RS256;
+    private static final String ISSUER = "self";
+
+    private final JwtProperties properties;
+    private final JwtKeyLoaderUtils keyLoaderUtils;
+
+    private PrivateKey privateKey;
+    private PublicKey publicKey;
+
+    @PostConstruct
+    private void init() {
+        try {
+            this.privateKey = keyLoaderUtils.loadPrivateKeyFromPEM(properties.privateKey());
+            this.publicKey = keyLoaderUtils.loadPublicKeyFromPEM(properties.publicKey());
+        } catch (Exception e) {
+            throw new JwtKeyLoadException("Failed to load JWT keys", e);
+        }
+    }
+
+    public String generateToken(UserDetails userDetails) {
+        Date now = new Date();
+        Date expiration = new Date(now.getTime() + properties.expiration());
+
+        return Jwts.builder()
+                .subject(userDetails.getUsername())
+                .issuer(ISSUER)
+                .issuedAt(now)
+                .expiration(expiration)
+                .signWith(privateKey, ALGORITHM)
+                .compact();
+    }
+
+    public String extractSubject(String token) {
+        return readClaim(token, Claims::getSubject);
+    }
+
+    public boolean isTokenValid(String token) {
+        try {
+            String issuer = extractIssuer(token);
+            return ISSUER.equals(issuer) && !isTokenExpired(token);
+        } catch (JwtException e) {
+            log.debug("Token validation failed: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private <T> T readClaim(String token, Function<Claims, T> claimsResolver) {
+        try {
+            Claims claims = readAllClaims(token);
+            return claimsResolver.apply(claims);
+        } catch (JwtException | IllegalArgumentException e) {
+            log.debug("Failed to read claim: {}", e.getMessage());
+            throw e;
+        }
+    }
+
+    private Date extractExpiration(String token) {
+        return readClaim(token, Claims::getExpiration);
+    }
+
+    private String extractIssuer(String token) {
+        return readClaim(token, Claims::getIssuer);
+    }
+
+    private boolean isTokenExpired(String token) {
+        try {
+            return extractExpiration(token).before(new Date());
+        } catch (JwtException e) {
+            log.debug("Token expiration check failed: {}", e.getMessage());
+            return true;
+        }
+    }
+
+    private Claims readAllClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(publicKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
 }
