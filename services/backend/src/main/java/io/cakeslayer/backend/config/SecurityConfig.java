@@ -22,7 +22,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private static final String USER_NOT_FOUND_MESSAGE = "User not found with email: %s";
+    private static final String USER_NOT_FOUND_MESSAGE = "User not found with username: %s";
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
@@ -55,7 +55,7 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(UserRepository userRepository) {
-        return username -> userRepository.findByEmail(username)
+        return username -> userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND_MESSAGE.formatted(username)));
     }
 }
