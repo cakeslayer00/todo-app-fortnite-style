@@ -1,7 +1,7 @@
 package io.cakeslayer.backend.advice;
 
 import io.cakeslayer.backend.dto.response.ErrorResponse;
-import io.cakeslayer.backend.exception.NoActiveRefreshTokenException;
+import io.cakeslayer.backend.exception.security.RefreshTokenException;
 import io.cakeslayer.backend.exception.UserAlreadyExistsException;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
         return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
     }
 
-    @ExceptionHandler({NoActiveRefreshTokenException.class, JwtException.class})
+    @ExceptionHandler({RefreshTokenException.class, JwtException.class})
     @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ErrorResponse handleInvalidTokenException(Exception ex) {
         log.warn("Invalid token attempt: {}", ex.getMessage());

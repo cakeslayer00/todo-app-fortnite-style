@@ -1,6 +1,6 @@
 package io.cakeslayer.backend.filter;
 
-import io.cakeslayer.backend.service.JwtService;
+import io.cakeslayer.backend.security.jwt.JwtService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

@@ -1,4 +1,4 @@
-package io.cakeslayer.backend.service.impl;
+package io.cakeslayer.backend.security.authentication.impl;
 
 import io.cakeslayer.backend.config.properties.JwtProperties;
 import io.cakeslayer.backend.dto.request.LoginRequest;
@@ -7,13 +7,15 @@ import io.cakeslayer.backend.dto.request.RegisterRequest;
 import io.cakeslayer.backend.dto.response.AuthResponse;
 import io.cakeslayer.backend.entity.RefreshToken;
 import io.cakeslayer.backend.entity.User;
-import io.cakeslayer.backend.exception.NoActiveRefreshTokenException;
+import io.cakeslayer.backend.exception.security.RefreshTokenExpiredException;
+import io.cakeslayer.backend.exception.security.RefreshTokenNotFoundException;
+import io.cakeslayer.backend.exception.security.RefreshTokenRevokedException;
 import io.cakeslayer.backend.exception.UserAlreadyExistsException;
 import io.cakeslayer.backend.repository.RefreshTokenRepository;
 import io.cakeslayer.backend.repository.UserRepository;
-import io.cakeslayer.backend.service.AuthService;
-import io.cakeslayer.backend.service.JwtService;
-import io.cakeslayer.backend.util.RefreshTokenUtils;
+import io.cakeslayer.backend.security.authentication.AuthService;
+import io.cakeslayer.backend.security.jwt.JwtService;
+import io.cakeslayer.backend.security.token.RefreshTokenUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -32,7 +34,9 @@ import java.time.temporal.ChronoUnit;
 public class AuthServiceImpl implements AuthService {
 
     private static final String ERR_USERNAME_ALREADY_EXISTS = "User with username '%s' already exists";
-    private static final String ERR_REFRESH_TOKEN_NOT_FOUND = "Refresh token not found or inactive";
+    private static final String ERR_REFRESH_TOKEN_NOT_FOUND = "Refresh token not found";
+    private static final String ERR_REFRESH_TOKEN_EXPIRED = "Refresh token has expired";
+    private static final String ERR_REFRESH_TOKEN_REVOKED = "Refresh token has been revoked";
 
     private final JwtService jwtService;
     private final JwtProperties jwtProperties;
@@ -83,9 +87,20 @@ public class AuthServiceImpl implements AuthService {
     @Override
     @Transactional
     public AuthResponse refresh(RefreshRequest request) {
-        RefreshToken token = refreshTokenRepository.findByToken(RefreshTokenUtils.hashToken(request.refreshToken()))
-                .filter(RefreshToken::isActive)
-                .orElseThrow(()-> new NoActiveRefreshTokenException(ERR_REFRESH_TOKEN_NOT_FOUND));
+        String hashedToken = RefreshTokenUtils.hashToken(request.refreshToken());
+
+        RefreshToken token = refreshTokenRepository.findByToken(hashedToken)
+                .orElseThrow(() -> new RefreshTokenNotFoundException(ERR_REFRESH_TOKEN_NOT_FOUND));
+
+        if (token.isRevoked()) {
+            log.warn("Attempt to use revoked refresh token for user: {}", token.getUser().getUsername());
+            throw new RefreshTokenRevokedException(ERR_REFRESH_TOKEN_REVOKED);
+        }
+
+        if (token.isExpired()) {
+            log.warn("Attempt to use expired refresh token for user: {}", token.getUser().getUsername());
+            throw new RefreshTokenExpiredException(ERR_REFRESH_TOKEN_EXPIRED);
+        }
 
         token.setRevokedAt(Instant.now());
 
@@ -107,5 +122,5 @@ public class AuthServiceImpl implements AuthService {
         refreshTokenRepository.save(refreshToken);
     }
 
-    // TODO: Add token family tracking for reuse detection, fix revocation to set active=false, validate expiration on refresh, implement logout endpoint, add scheduled cleanup job, optimize token size to 32 bytes, add database indexes, and reuse SecureRandom instance
+    // TODO: Add token family tracking for reuse detection,  implement logout endpoint, add scheduled cleanup job, add database indexes,
 }

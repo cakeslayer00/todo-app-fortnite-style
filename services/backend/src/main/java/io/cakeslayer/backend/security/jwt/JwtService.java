@@ -1,8 +1,7 @@
-package io.cakeslayer.backend.service;
+package io.cakeslayer.backend.security.jwt;
 
 import io.cakeslayer.backend.config.properties.JwtProperties;
-import io.cakeslayer.backend.exception.JwtKeyLoadException;
-import io.cakeslayer.backend.util.JwtKeyLoaderUtils;
+import io.cakeslayer.backend.exception.security.JwtKeyLoadException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
@@ -27,7 +26,7 @@ public class JwtService {
     private static final String ISSUER = "self";
 
     private final JwtProperties properties;
-    private final JwtKeyLoaderUtils keyLoaderUtils;
+    private final JwtKeyLoader jwtKeyLoader;
 
     private PrivateKey privateKey;
     private PublicKey publicKey;
@@ -35,8 +34,8 @@ public class JwtService {
     @PostConstruct
     private void init() {
         try {
-            this.privateKey = keyLoaderUtils.loadPrivateKeyFromPEM(properties.privateKey());
-            this.publicKey = keyLoaderUtils.loadPublicKeyFromPEM(properties.publicKey());
+            this.privateKey = jwtKeyLoader.loadPrivateKey(properties.privateKey());
+            this.publicKey = jwtKeyLoader.loadPublicKey(properties.publicKey());
         } catch (Exception e) {
             throw new JwtKeyLoadException("Failed to load JWT keys", e);
         }
