@@ -1,9 +1,14 @@
 package io.cakeslayer.backend.config;
 
+import io.cakeslayer.backend.entity.RefreshToken;
 import io.cakeslayer.backend.filter.JwtAuthenticationFilter;
+import io.cakeslayer.backend.repository.RefreshTokenRepository;
 import io.cakeslayer.backend.repository.UserRepository;
+import io.cakeslayer.backend.security.jwt.JwtService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.lang.NonNull;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -17,6 +22,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutHandler;
+
+import java.time.Instant;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -27,7 +36,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    UserRepository userRepository,
-                                                   JwtAuthenticationFilter jwtAuthenticationFilter) {
+                                                   JwtAuthenticationFilter jwtAuthenticationFilter,
+                                                   RefreshTokenRepository refreshTokenRepository,
+                                                   JwtService jwtService) {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
@@ -39,8 +50,32 @@ public class SecurityConfig {
                 )
                 .userDetailsService(userDetailsService(userRepository))
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .logout(logoutConfigurer -> {
+                    logoutConfigurer
+                            .addLogoutHandler(onLogoutRefreshTokenRevokeHandler(refreshTokenRepository, jwtService));
+                })
                 .httpBasic(Customizer.withDefaults());
         return http.build();
+    }
+
+    private static LogoutHandler onLogoutRefreshTokenRevokeHandler(
+            RefreshTokenRepository refreshTokenRepository,
+            JwtService jwtService) {
+        return (request, _, _) -> {
+            String token;
+
+            String authorization = request.getHeader("Authorization");
+            if (authorization == null || !authorization.startsWith("Bearer ")) {
+                return;
+            }
+            token = authorization.substring("Bearer ".length());
+
+            String username = jwtService.extractSubject(token);
+
+            List<RefreshToken> tokens = refreshTokenRepository.findAllByUser_Username(username);
+            tokens.forEach(rt -> rt.setRevokedAt(Instant.now()));
+            refreshTokenRepository.saveAll(tokens);
+        };
     }
 
     @Bean

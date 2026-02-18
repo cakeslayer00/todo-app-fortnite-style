@@ -18,14 +18,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.Optional;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
-
-    private static final String BEARER_PREFIX = "Bearer ";
 
     private final JwtService jwtService;
     private final UserDetailsService userDetailsService;
@@ -36,10 +33,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
             throws ServletException, IOException {
         try {
-            Optional<String> tokenOpt = extractTokenFromRequest(request);
+            String token = extractTokenFromRequest(request);
 
-            if (tokenOpt.isPresent() && SecurityContextHolder.getContext().getAuthentication() == null) {
-                authenticateUser(tokenOpt.get(), request);
+            if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                authenticateUser(token, request);
             }
         } catch (JwtException e) {
             log.warn("JWT validation failed: {}", e.getMessage());
@@ -52,12 +49,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-    private Optional<String> extractTokenFromRequest(HttpServletRequest request) {
+    private String extractTokenFromRequest(HttpServletRequest request) {
         String authorization = request.getHeader("Authorization");
-        if (authorization != null && authorization.startsWith(BEARER_PREFIX)) {
-            return Optional.of(authorization.substring(BEARER_PREFIX.length()));
+        if (authorization != null && authorization.startsWith("Bearer ")) {
+            return authorization.substring("Bearer ".length());
         }
-        return Optional.empty();
+        return null;
     }
 
     private void authenticateUser(String token, HttpServletRequest request) {

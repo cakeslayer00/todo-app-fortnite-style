@@ -34,6 +34,7 @@ import java.time.temporal.ChronoUnit;
 public class AuthServiceImpl implements AuthService {
 
     private static final String ERR_USERNAME_ALREADY_EXISTS = "User with username '%s' already exists";
+    private static final String ERR_EMAIL_ALREADY_EXISTS = "User with email '%s' already exists";
     private static final String ERR_REFRESH_TOKEN_NOT_FOUND = "Refresh token not found";
     private static final String ERR_REFRESH_TOKEN_EXPIRED = "Refresh token has expired";
     private static final String ERR_REFRESH_TOKEN_REVOKED = "Refresh token has been revoked";
@@ -52,6 +53,10 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.findByUsername(request.username()).isPresent()) {
             throw new UserAlreadyExistsException(ERR_USERNAME_ALREADY_EXISTS.formatted(request.username()));
+        }
+
+        if (userRepository.findByEmail(request.email()).isPresent()) {
+            throw new UserAlreadyExistsException(ERR_EMAIL_ALREADY_EXISTS.formatted(request.email()));
         }
 
         User user = new User();
