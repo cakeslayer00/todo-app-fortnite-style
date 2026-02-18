@@ -1,0 +1,23 @@
+databaseChangeLog:
+  - changeSet:
+      id: 7
+      author: v
+      changes:
+        - createIndex:
+            tableName: refresh_token
+            columns:
+              - column:
+                  name: family_id
+            indexName: idx_refresh_token_family_id
+        - createIndex:
+            tableName: refresh_token
+            columns:
+              - column:
+                  name: expiry_at
+            indexName: idx_refresh_token_expiry_at
+        - createIndex:
+            tableName: refresh_token
+            columns:
+              - column:
+                  name: user_id
+            indexName: idx_refresh_token_user_id

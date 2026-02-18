@@ -144,6 +144,4 @@ public class AuthServiceImpl implements AuthService {
 
         refreshTokenRepository.save(refreshToken);
     }
-
-    // TODO: add scheduled cleanup job, add database indexes,
 }
