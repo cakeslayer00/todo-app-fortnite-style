@@ -27,6 +27,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
@@ -97,15 +99,7 @@ public class AuthServiceImpl implements AuthService {
         RefreshToken token = refreshTokenRepository.findByToken(hashedToken)
                 .orElseThrow(() -> new RefreshTokenNotFoundException(ERR_REFRESH_TOKEN_NOT_FOUND));
 
-        if (token.isRevoked()) {
-            log.warn("Attempt to use revoked refresh token for user: {}", token.getUser().getUsername());
-            throw new RefreshTokenRevokedException(ERR_REFRESH_TOKEN_REVOKED);
-        }
-
-        if (token.isExpired()) {
-            log.warn("Attempt to use expired refresh token for user: {}", token.getUser().getUsername());
-            throw new RefreshTokenExpiredException(ERR_REFRESH_TOKEN_EXPIRED);
-        }
+        validateRefreshToken(token);
 
         token.setRevokedAt(Instant.now());
 
@@ -113,19 +107,43 @@ public class AuthServiceImpl implements AuthService {
         String accessToken = jwtService.generateToken(user);
         String newRefreshToken = RefreshTokenUtils.generateRefreshToken();
 
-        saveRefreshToken(user, newRefreshToken);
+        saveRefreshToken(user, newRefreshToken, token.getFamilyId());
 
         return new AuthResponse(user.getUsername(), accessToken, newRefreshToken);
     }
 
+    private void validateRefreshToken(RefreshToken token) {
+        if (token.isExpired()) {
+            throw new RefreshTokenExpiredException(ERR_REFRESH_TOKEN_EXPIRED);
+        }
+
+        if (token.isRevoked()) {
+            handleTokenReuse(token);
+            throw new RefreshTokenRevokedException(ERR_REFRESH_TOKEN_REVOKED);
+        }
+    }
+
+    private void handleTokenReuse(RefreshToken token) {
+        log.warn("Refresh token reuse detected for user: {}", token.getUser().getUsername());
+        log.warn("Revoking all tokens in family: {}", token.getFamilyId());
+        List<RefreshToken> family = refreshTokenRepository.findAllByFamilyId(token.getFamilyId());
+        family.forEach(rt -> rt.setRevokedAt(Instant.now()));
+        refreshTokenRepository.saveAll(family);
+    }
+
     private void saveRefreshToken(User user, String plainToken) {
+        saveRefreshToken(user, plainToken, UUID.randomUUID());
+    }
+
+    private void saveRefreshToken(User user, String plainToken, UUID familyId) {
         RefreshToken refreshToken = new RefreshToken();
         refreshToken.setToken(RefreshTokenUtils.hashToken(plainToken));
         refreshToken.setUser(user);
+        refreshToken.setFamilyId(familyId);
         refreshToken.setExpiresAt(Instant.now().plus(jwtProperties.refreshExpiration(), ChronoUnit.SECONDS));
 
         refreshTokenRepository.save(refreshToken);
     }
 
-    // TODO: Add token family tracking for reuse detection,  implement logout endpoint, add scheduled cleanup job, add database indexes,
+    // TODO: add scheduled cleanup job, add database indexes,
 }

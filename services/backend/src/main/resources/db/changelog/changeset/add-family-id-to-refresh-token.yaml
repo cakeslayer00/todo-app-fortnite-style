@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: 6
+      author: v
+      changes:
+        - addColumn:
+            tableName: refresh_token
+            columns:
+              - column:
+                  name: family_id
+                  type: ${uuid.type}
+                  constraints:
+                    nullable: false

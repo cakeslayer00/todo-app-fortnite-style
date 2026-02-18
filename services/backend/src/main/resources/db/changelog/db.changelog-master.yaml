@@ -1,7 +1,20 @@
 databaseChangeLog:
+  - property:
+      name: uuid.type
+      value: uuid
+      dbms: postgresql
+  - property:
+      name: uuid.type
+      value: varchar(36)
+      dbms: mysql, h2, oracle, mssql
+  - property:
+      name: uuid.type
+      value: uuid
   - include:
       file: db/changelog/changeset/create-user-table.yaml
   - include:
       file: db/changelog/changeset/create-refresh-token-table.yaml
   - include:
       file: db/changelog/changeset/add-unique-constraint-to-username.yaml
+  - include:
+      file: db/changelog/changeset/add-family-id-to-refresh-token.yaml

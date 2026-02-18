@@ -8,6 +8,7 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Entity
 @Getter
@@ -23,6 +24,9 @@ public class RefreshToken {
 
     @Column(nullable = false, unique = true)
     private String token;
+
+    @Column(name = "family_id", nullable = false)
+    private UUID familyId;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "user_id", nullable = false)
@@ -43,9 +47,5 @@ public class RefreshToken {
 
     public boolean isRevoked() {
         return revokedAt != null;
-    }
-
-    public boolean isActive() {
-        return !isExpired() && !isRevoked();
     }
 }
