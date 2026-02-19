@@ -3,7 +3,6 @@ package io.cakeslayer.backend.dto.request;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
 
 public record RegisterRequest(@NotBlank(message = "Username is required")
                               @Size(min = 6, message = "Username should be at least 6 characters")

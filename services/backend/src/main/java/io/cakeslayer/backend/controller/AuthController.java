@@ -4,7 +4,6 @@ import io.cakeslayer.backend.dto.request.LoginRequest;
 import io.cakeslayer.backend.dto.request.RefreshRequest;
 import io.cakeslayer.backend.dto.request.RegisterRequest;
 import io.cakeslayer.backend.dto.response.AuthResponse;
-import io.cakeslayer.backend.repository.RefreshTokenRepository;
 import io.cakeslayer.backend.security.authentication.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
