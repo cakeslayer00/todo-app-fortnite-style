@@ -1,0 +1,50 @@
+databaseChangeLog:
+  - changeSet:
+      id: 3
+      author: v
+      changes:
+        - createTable:
+            tableName: refresh_token
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: token
+                  type: varchar(512)
+                  constraints:
+                    unique: true
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_refresh_token_user
+                    referencedTableName: users
+                    referencedColumnNames: id
+              - column:
+                  name: expiry_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: created_at
+                  type: timestamp
+                  constraints:
+                    nullable: false
+              - column:
+                  name: revoked_at
+                  type: timestamp
+  - changeSet:
+      id: 4
+      author: v
+      changes:
+        - createSequence:
+            sequenceName: refresh_tokens_id_seq
+            startValue: 1
+            incrementBy: 1
+            minValue: 1
