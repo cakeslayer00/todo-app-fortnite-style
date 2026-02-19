@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthController {
 
     private final AuthService authService;
-    private final RefreshTokenRepository refreshTokenRepository;
 
     @PostMapping
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
