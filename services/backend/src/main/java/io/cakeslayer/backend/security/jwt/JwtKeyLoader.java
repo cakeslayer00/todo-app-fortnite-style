@@ -51,9 +51,6 @@ public class JwtKeyLoader {
 
     private String loadKeyContent(String location) throws IOException {
         Resource resource = resourceLoader.getResource(location);
-        if (!resource.exists()) {
-            throw new IOException("Key resource not found: " + location);
-        }
         try (InputStream inputStream = resource.getInputStream()) {
             return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         }

@@ -8,17 +8,8 @@ services:
       - ./secrets/backend/public_key.pem:/app/config/public_key.pem
     env_file:
       - .env
-    depends_on:
-      - db
     ports:
-      - "8080:8080"
-    # Note: Requires spring-boot-starter-actuator or a custom /health endpoint
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
+      - '8080:8080'
 
   db:
     image: postgres:17.5-alpine3.22
