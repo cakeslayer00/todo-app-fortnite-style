@@ -35,10 +35,11 @@ public class RefreshToken {
     @Column(name = "expiry_at", nullable = false)
     private Instant expiresAt;
 
-    @Column(nullable = false)
+    @Column(name = "created_at", nullable = false)
     @CreationTimestamp
     private Instant createdAt;
 
+    @Column(name = "revoked_at")
     private Instant revokedAt;
 
     public boolean isExpired() {
