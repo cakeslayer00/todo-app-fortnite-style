@@ -5,8 +5,8 @@ scheduler:
     cron: '0 15 10 15 * ?'
 
 jwt:
-  private-key: classpath:private_key.pem #load from .env later, here add ${JWT_PRIVATE_KEY} instead of everything
-  public-key: classpath:public_key.pem # here add ${JWT_PUBLIC_KEY}
+  private-key: classpath:private_key.pem
+  public-key: classpath:public_key.pem
   expiration: 86400000
   refresh-expiration: 604800000
 
