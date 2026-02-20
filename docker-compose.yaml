@@ -1,16 +1,10 @@
 services:
-  backend:
-    build:
-      context: ./services/backend
-      dockerfile: Dockerfile
   db:
     image: postgres:17.5-alpine3.22
     container_name: postgres_db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-myapp}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      - .env
     ports:
       - "5432:5432"
     volumes:
