@@ -36,13 +36,13 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
 
     @Override
     @Transactional
-    public String createRefreshToken(User user) {
+    public RefreshToken createRefreshToken(User user) {
         return createRefreshToken(user, UUID.randomUUID());
     }
 
     @Override
     @Transactional
-    public String createRefreshToken(User user, UUID familyId) {
+    public RefreshToken createRefreshToken(User user, UUID familyId) {
         String plainToken = RefreshTokenUtils.generateRefreshToken();
         
         RefreshToken refreshToken = new RefreshToken();
@@ -51,8 +51,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         refreshToken.setFamilyId(familyId);
         refreshToken.setExpiresAt(Instant.now().plus(jwtProperties.refreshExpiration(), ChronoUnit.SECONDS));
 
-        refreshTokenRepository.save(refreshToken);
-        return plainToken;
+        return refreshTokenRepository.save(refreshToken);
     }
 
     @Override
@@ -70,11 +69,12 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     }
 
     @Override
-    @Transactional
-    public void revokeAllByUser(String username) {
-        List<RefreshToken> tokens = refreshTokenRepository.findAllByUser_Username(username);
-        tokens.forEach(rt -> rt.setRevokedAt(Instant.now()));
-        refreshTokenRepository.saveAll(tokens);
+    public void revokeRefreshToken(UUID tokenId) {
+        refreshTokenRepository.findById(tokenId)
+                .ifPresent(token -> {
+                    token.setRevokedAt(Instant.now().plusSeconds(GRACE_PERIOD));
+                    refreshTokenRepository.save(token);
+                });
     }
 
     private void validateRefreshToken(RefreshToken token) {

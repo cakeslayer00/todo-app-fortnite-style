@@ -20,3 +20,5 @@ databaseChangeLog:
       file: db/changelog/changeset/add-family-id-to-refresh-token.yaml
   - include:
       file: db/changelog/changeset/add-indexes-to-refresh-token.yaml
+  - include:
+      file: db/changelog/changeset/change-refresh-token-id-to-uuid.yaml

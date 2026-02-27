@@ -1,5 +1,6 @@
 package io.cakeslayer.backend.filter;
 
+import io.cakeslayer.backend.entity.User;
 import io.cakeslayer.backend.security.jwt.JwtService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -62,14 +63,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        String username = jwtService.extractSubject(token);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        String userId = jwtService.extractSubject(token);
+        User user = (User) userDetailsService.loadUserByUsername(userId);
 
         UsernamePasswordAuthenticationToken authentication =
                 new UsernamePasswordAuthenticationToken(
-                        userDetails,
+                        user,
                         null,
-                        userDetails.getAuthorities()
+                        user.getAuthorities()
                 );
 
         authentication.setDetails(

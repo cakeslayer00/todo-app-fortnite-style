@@ -1,6 +1,7 @@
 package io.cakeslayer.backend.security.jwt;
 
 import io.cakeslayer.backend.config.properties.JwtProperties;
+import io.cakeslayer.backend.entity.User;
 import io.cakeslayer.backend.exception.security.JwtKeyLoadException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -9,12 +10,12 @@ import io.jsonwebtoken.security.SignatureAlgorithm;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.util.Date;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -23,7 +24,6 @@ import java.util.function.Function;
 public class JwtService {
 
     private static final SignatureAlgorithm ALGORITHM = Jwts.SIG.RS256;
-    private static final String ISSUER = "self";
 
     private final JwtProperties properties;
     private final JwtKeyLoader jwtKeyLoader;
@@ -41,13 +41,14 @@ public class JwtService {
         }
     }
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(User user, UUID refreshTokenId) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + properties.expiration());
 
         return Jwts.builder()
-                .subject(userDetails.getUsername())
-                .issuer(ISSUER)
+                .subject(user.getId().toString())
+                .id(refreshTokenId.toString())
+                .issuer(properties.issuer())
                 .issuedAt(now)
                 .expiration(expiration)
                 .signWith(privateKey, ALGORITHM)
@@ -61,7 +62,7 @@ public class JwtService {
     public boolean isTokenValid(String token) {
         try {
             String issuer = extractIssuer(token);
-            return ISSUER.equals(issuer) && !isTokenExpired(token);
+            return properties.issuer().equals(issuer) && !isTokenExpired(token);
         } catch (JwtException e) {
             log.debug("Token validation failed: {}", e.getMessage());
             return false;
@@ -103,4 +104,7 @@ public class JwtService {
                 .getPayload();
     }
 
+    public String extractJTI(String token) {
+        return readClaim(token, Claims::getId);
+    }
 }

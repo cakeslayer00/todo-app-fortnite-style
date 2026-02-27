@@ -67,11 +67,11 @@ public class AuthServiceImpl implements AuthService {
 
         User user = (User) auth.getPrincipal();
 
-        String accessToken = jwtService.generateToken(user);
-        String refreshToken = refreshTokenService.createRefreshToken(user);
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+        String accessToken = jwtService.generateToken(user, refreshToken.getId());
 
         log.info("User '{}' is authenticated", user.getUsername());
-        return new AuthResponse(user.getUsername(), accessToken, refreshToken);
+        return new AuthResponse(user.getUsername(), accessToken, refreshToken.getToken());
     }
 
     @Override
@@ -80,9 +80,9 @@ public class AuthServiceImpl implements AuthService {
         RefreshToken token = refreshTokenService.validateAndRevoke(request.refreshToken());
 
         User user = token.getUser();
-        String accessToken = jwtService.generateToken(user);
-        String newRefreshToken = refreshTokenService.createRefreshToken(user, token.getFamilyId());
+        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user, token.getFamilyId());
+        String accessToken = jwtService.generateToken(user, newRefreshToken.getId());
 
-        return new AuthResponse(user.getUsername(), accessToken, newRefreshToken);
+        return new AuthResponse(user.getUsername(), accessToken, newRefreshToken.getToken());
     }
 }

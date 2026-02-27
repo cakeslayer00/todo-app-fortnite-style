@@ -18,9 +18,8 @@ import java.util.UUID;
 public class RefreshToken {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "refresh_tokens_id_seq_gen")
-    @SequenceGenerator(name = "refresh_tokens_id_seq_gen", sequenceName = "refresh_tokens_id_seq", allocationSize = 1)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(nullable = false, unique = true)
     private String token;

@@ -1,0 +1,27 @@
+databaseChangeLog:
+  - changeSet:
+      id: change-refresh-token-id-to-uuid
+      author: junie
+      preConditions:
+        - onFail: MARK_RAN
+          dbms:
+            type: postgresql
+      changes:
+        - dropSequence:
+            sequenceName: refresh_tokens_id_seq
+        - dropPrimaryKey:
+            tableName: refresh_token
+            constraintName: refresh_token_pkey
+        - dropColumn:
+            columnName: id
+            tableName: refresh_token
+        - addColumn:
+            tableName: refresh_token
+            columns:
+              - column:
+                  name: id
+                  type: ${uuid.type}
+                  defaultValueComputed: gen_random_uuid()
+                  constraints:
+                    primaryKey: true
+                    nullable: false

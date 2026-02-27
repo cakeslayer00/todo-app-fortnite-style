@@ -7,11 +7,11 @@ import java.util.UUID;
 
 public interface RefreshTokenService {
 
-    String createRefreshToken(User user);
+    RefreshToken createRefreshToken(User user);
 
-    String createRefreshToken(User user, UUID familyId);
+    RefreshToken createRefreshToken(User user, UUID familyId);
 
     RefreshToken validateAndRevoke(String token);
 
-    void revokeAllByUser(String username);
+    void revokeRefreshToken(UUID tokenId);
 }
