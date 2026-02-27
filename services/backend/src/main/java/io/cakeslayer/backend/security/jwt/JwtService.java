@@ -10,6 +10,7 @@ import io.jsonwebtoken.security.SignatureAlgorithm;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.PrivateKey;
@@ -41,12 +42,12 @@ public class JwtService {
         }
     }
 
-    public String generateToken(User user, UUID refreshTokenId) {
+    public String generateToken(UserDetails userDetails, UUID refreshTokenId) {
         Date now = new Date();
         Date expiration = new Date(now.getTime() + properties.expiration());
 
         return Jwts.builder()
-                .subject(user.getId().toString())
+                .subject(userDetails.getUsername())
                 .id(refreshTokenId.toString())
                 .issuer(properties.issuer())
                 .issuedAt(now)
