@@ -82,7 +82,7 @@ public class AuthServiceImpl implements AuthService {
         User user = token.getUser();
         RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user, token.getFamilyId());
         String accessToken = jwtService.generateToken(user, newRefreshToken.getId());
-
+//TODO: change this to return plain token instead of hashed one
         return new AuthResponse(user.getUsername(), accessToken, newRefreshToken.getToken());
     }
 }

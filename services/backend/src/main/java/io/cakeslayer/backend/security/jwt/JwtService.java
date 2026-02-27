@@ -1,7 +1,6 @@
 package io.cakeslayer.backend.security.jwt;
 
 import io.cakeslayer.backend.config.properties.JwtProperties;
-import io.cakeslayer.backend.entity.User;
 import io.cakeslayer.backend.exception.security.JwtKeyLoadException;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
