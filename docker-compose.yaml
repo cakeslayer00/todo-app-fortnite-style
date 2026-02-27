@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:17.5-alpine3.22
-    container_name: postgres_db
+    container_name: fortnite-db
     restart: unless-stopped
     environment:
       - .env

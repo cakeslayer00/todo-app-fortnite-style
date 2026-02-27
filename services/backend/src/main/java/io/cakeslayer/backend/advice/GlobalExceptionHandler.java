@@ -2,8 +2,6 @@ package io.cakeslayer.backend.advice;
 
 import io.cakeslayer.backend.dto.response.ErrorResponse;
 import io.cakeslayer.backend.exception.UserAlreadyExistsException;
-import io.cakeslayer.backend.exception.security.HashingAlgorithmNotSupportedException;
-import io.cakeslayer.backend.exception.security.JwtKeyLoadException;
 import io.cakeslayer.backend.exception.security.RefreshTokenException;
 import io.jsonwebtoken.JwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -57,13 +55,6 @@ public class GlobalExceptionHandler {
     public ErrorResponse handleInvalidTokenException(Exception ex) {
         log.warn("Invalid token attempt: {}", ex.getMessage());
         return new ErrorResponse(HttpStatus.UNAUTHORIZED.value(), ex.getMessage());
-    }
-
-    @ExceptionHandler({HashingAlgorithmNotSupportedException.class, JwtKeyLoadException.class})
-    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleInternalSecurityException(Exception ex) {
-        log.error("Internal security configuration error: ", ex);
-        return new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), INTERNAL_SERVER_ERROR_MESSAGE);
     }
 
     @ExceptionHandler(Exception.class)
